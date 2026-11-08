@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Poppins", sans-serif;
+  --color-base: #09090b;
+  
+  --color-surface: #111113;
+  --color-field: #151517;
+  --color-line: #27272a;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+}
+
+body { @apply bg-base text-zinc-200 font-sans antialiased; }
+
+

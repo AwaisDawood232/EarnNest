@@ -1,0 +1,48 @@
+node_modules
+.env
+*.json.key
+serviceAccount*.json
+dist
+
+server/uploads
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build files
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Firebase credentials
+serviceAccountKey.json
+*service-account*.json
+
+# IDE and operating system
+.vscode/
+.DS_Store
+Thumbs.db
+
+
+
+node_modules
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+dist
+server/uploads
+server/test-firebase.js
+
