@@ -98,7 +98,7 @@ export const start = async (req, res, next) => {
       const now = new Date();
       t.set(viewRef, {
         uid, adId: id, adTitle: ad.title, name: u.fullName || "Member", email: u.email || "", day,
-        status: "started", requiredSec: ad.requiredSec, reward: ad.reward, watchedSec: 0,
+        status: "started", adType: ad.type, requiredSec: ad.requiredSec, reward: ad.reward, watchedSec: 0,
         attempts: num(vSnap.data()?.attempts) + 1,
         startedAt: now, updatedAt: now, createdAt: vSnap.exists ? vSnap.data().createdAt : now,
       });
@@ -145,7 +145,8 @@ export const complete = async (req, res, next) => {
 
       const need = num(v.requiredSec);
       const elapsed = (now - ms(v.startedAt)) / 1000;
-      if (elapsed < need - 1 || watched < need * 0.9) throw httpError(400, "Please watch the full video to earn the reward.");
+      
+      if (elapsed < need - 1 || (v.adType !== "link" && watched < need * 0.9)) throw httpError(400, "Please complete the ad to earn the reward.");
 
       const hasPlan = !planSnap.empty;
       const blocked = gate(u, s, hasPlan);

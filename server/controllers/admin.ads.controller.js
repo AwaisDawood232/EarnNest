@@ -42,6 +42,14 @@ function resolveSource(type, source) {
     if (!id) throw httpError(400, "Enter a valid YouTube link");
     return { videoId: id, url: "", file: "" };
   }
+  if (type === "link") {
+  let u = null;
+  try { u = new URL(String(source).trim()); } catch {}
+  if (!u || !["https:", "http:"].includes(u.protocol) || !u.hostname.includes(".") || u.username || u.password) {
+    throw httpError(400, "Enter a valid web link starting with https://");
+  }
+  return { videoId: "", url: u.href, file: "" };
+}
   if (type === "video") {
     let u = null;
     try { u = new URL(String(source).trim()); } catch {}
@@ -57,7 +65,7 @@ function resolveSource(type, source) {
 const base = z.object({
   title: z.string().trim().min(3, "Title is too short").max(80, "Title is too long"),
   description: z.string().trim().max(200, "Description is too long"),
-  type: z.enum(["youtube", "video", "upload"], { message: "Choose a video source" }),
+  type: z.enum(["youtube", "video", "upload", "link"], { message: "Choose an ad source" }),
   source: z.string().trim().min(1, "Add the video link or upload a video").max(500),
   requiredSec: z.coerce.number({ message: "Enter the watch time" }).int("Watch time must be a whole number").min(5, "Minimum watch time is 5 seconds").max(3600, "Maximum watch time is 3600 seconds"),
   reward: z.coerce.number({ message: "Enter the reward" }).positive("Reward must be greater than 0").max(1_000_000, "Reward is too large"),

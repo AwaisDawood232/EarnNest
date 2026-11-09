@@ -14,7 +14,7 @@ export const shapeAd = (id, d) => ({
   id,
   title: d.title || "Ad",
   description: d.description || "",
-  type: ["youtube", "video", "upload"].includes(d.type) ? d.type : "video",
+  type: ["youtube", "video", "upload", "link"].includes(d.type) ? d.type : "video",
   videoId: d.videoId || "",
   url: d.url || "",
   file: d.file || "",
@@ -26,7 +26,7 @@ export const shapeAd = (id, d) => ({
   paid: num(d.paid),
 });
 
-export const srcOf = (a) => (a.type === "upload" ? `/uploads/ads/${a.file}` : a.type === "video" ? a.url : "");
+export const srcOf = (a) => (a.type === "upload" ? `/uploads/ads/${a.file}` : a.type === "video" || a.type === "link" ? a.url : "");
 export const thumbOf = (a) => (a.type === "youtube" ? `https://img.youtube.com/vi/${a.videoId}/hqdefault.jpg` : "");
 
 export const hasActivePlan = async (uid) =>
