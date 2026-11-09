@@ -56,9 +56,13 @@ app.use(
 
 app.use(
   cors({
-    origin:
-      env.clientUrl ||
-      "http://localhost:5173",
+    // origin:
+    //   env.clientUrl ||
+    //   "http://localhost:5173",
+    origin: [
+  "https://earnnest.net",
+  "http://localhost:5173",
+],
     methods: [
       "GET",
       "POST",
