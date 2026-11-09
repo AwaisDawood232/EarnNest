@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, Play, Pause, Loader2, EyeOff } from "lucide-react";
+import { X, Play, Pause, Loader2, EyeOff, ExternalLink, Check } from "lucide-react";
 import api from "../services/api";
 import { assetUrl } from "../utils/assets";
 import { money } from "../utils/format";
@@ -22,7 +22,7 @@ const loadYT = () => {
 
 const LOAD_ERROR = { msg: "The video could not be loaded. Check your connection or turn off your ad blocker, then try again.", retry: false };
 
-export default function AdPlayer({ session, onClose, onDone }) {
+function VideoAd({ session, onClose, onDone }) {
   const { viewId, ad } = session;
   const need = ad.requiredSec;
 
@@ -213,3 +213,111 @@ export default function AdPlayer({ session, onClose, onDone }) {
 }
 
 
+
+
+
+
+
+
+
+function LinkAd({ session, onClose, onDone }) {
+  const { viewId, ad } = session;
+  const need = ad.requiredSec;
+  const [openedAt, setOpenedAt] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!openedAt) return;
+    const t = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(t);
+  }, [openedAt]);
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  const elapsed = openedAt ? Math.min((now - openedAt) / 1000, need) : 0;
+  const ready = !!openedAt && elapsed >= need;
+  const pct = (elapsed / need) * 100;
+
+  const open = () => {
+    const w = window.open(ad.src, "_blank");
+    if (!w) { setError("Your browser blocked the new tab. Allow pop-ups for this site and tap Open ad again."); return; }
+    try { w.opener = null; } catch {}
+    setError("");
+    if (!openedAt) { setOpenedAt(Date.now()); setNow(Date.now()); }
+  };
+
+  const claim = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      const { data } = await api.post(`/ads/views/${viewId}/complete`, { watchedSec: need });
+      onDone(data);
+    } catch (e) {
+      setSaving(false);
+      setError(e.response?.data?.message || "Could not confirm your visit. Please try again.");
+    }
+  };
+
+  const close = () => {
+    if (saving) return;
+    if (openedAt && !window.confirm("Leave now? You will not get the reward for this ad.")) return;
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/90 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-surface sm:rounded-3xl">
+        <div className="flex items-center justify-between gap-3 border-b border-line p-4">
+          <div className="min-w-0">
+            <p className="truncate font-display text-base font-bold text-white sm:text-lg">{ad.title}</p>
+            <p className="text-xs text-zinc-400">Reward {money(ad.reward)}</p>
+          </div>
+          <button onClick={close} disabled={saving} aria-label="Close"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line text-zinc-300 hover:bg-zinc-800"><X className="h-5 w-5" /></button>
+        </div>
+
+        <div className="space-y-4 p-5">
+          <ol className="space-y-2 text-sm text-zinc-300">
+            <li className="flex gap-2"><span className="font-bold text-brand-400">1.</span> Tap <b>Open ad</b>. The ad opens in a new tab.</li>
+            <li className="flex gap-2"><span className="font-bold text-brand-400">2.</span> Stay on the ad for {need} seconds.</li>
+            <li className="flex gap-2"><span className="font-bold text-brand-400">3.</span> Come back here and tap <b>Claim reward</b>.</li>
+          </ol>
+
+          <div>
+            <div className="mb-1.5 flex justify-between text-sm">
+              <span className="text-zinc-400">{openedAt ? <>Time on ad <span className="font-semibold text-white">{Math.floor(elapsed)}s</span> of {need}s</> : `Required time: ${need}s`}</span>
+              <span className="font-semibold text-white">{Math.floor(pct)}%</span>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-zinc-800">
+              <div className="h-full rounded-full bg-gradient-to-r from-brand-600 to-brand-400 transition-all duration-300" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+
+          {error && <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</p>}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button onClick={open} disabled={saving}
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-line text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-60">
+              <ExternalLink className="h-4 w-4" /> {openedAt ? "Open ad again" : "Open ad"}
+            </button>
+            <button onClick={claim} disabled={!ready || saving}
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-sm font-bold text-white shadow-lg shadow-brand-500/20 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {saving ? "Adding reward…" : ready ? "Claim reward" : "Claim reward"}
+            </button>
+          </div>
+          <p className="text-xs text-zinc-500">Keep the ad tab open until the timer finishes, then return to this tab.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AdPlayer(props) {
+  return props.session.ad.type === "link" ? <LinkAd {...props} /> : <VideoAd {...props} />;
+}

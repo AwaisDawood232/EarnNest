@@ -6,8 +6,8 @@ import api from "../../services/api";
 import { assetUrl } from "../../utils/assets";
 import { money } from "../../utils/format";
 
-const TYPES = [["youtube", "YouTube link"], ["video", "Video link (.mp4 / .webm)"], ["upload", "Upload a video"]];
-const TYPE_LABEL = { youtube: "YouTube", video: "Video link", upload: "Uploaded" };
+const TYPES = [["youtube", "YouTube link"], ["video", "Video link (.mp4 / .webm)"], ["upload", "Upload a video"], ["link", "Web link (any website / ad link)"]];
+const TYPE_LABEL = { youtube: "YouTube", video: "Video link", upload: "Uploaded", link: "Web link" };
 const EMPTY = { title: "", description: "", type: "youtube", source: "", requiredSec: "30", reward: "", sort: "0", active: true };
 const dur = (s) => (s >= 60 ? `${Math.floor(s / 60)}m${s % 60 ? ` ${s % 60}s` : ""}` : `${s}s`);
 const fmt = (iso) => (iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "—");
@@ -160,11 +160,16 @@ function AdModal({ item, onClose, onSaved }) {
                 )}
               </Field>
             ) : (
-              <Field label={f.type === "youtube" ? "YouTube link" : "Video link"}
-                hint={f.type === "youtube" ? "Paste any YouTube link. Make sure embedding is allowed for the video." : "A direct https link that ends in .mp4 or .webm."}>
-                <input value={f.source} onChange={set("source")} inputMode="url" maxLength={500}
-                  placeholder={f.type === "youtube" ? "https://www.youtube.com/watch?v=..." : "https://example.com/video.mp4"} className={input} />
-              </Field>
+              <Field
+  label={f.type === "youtube" ? "YouTube link" : f.type === "link" ? "Web link" : "Video link"}
+  hint={
+    f.type === "youtube" ? "Paste any YouTube link. Make sure embedding is allowed for the video."
+    : f.type === "link" ? "Any page or ad-network link. It opens in a new tab and the member must stay for the required time."
+    : "A direct https link that ends in .mp4 or .webm."
+  }>
+  <input value={f.source} onChange={set("source")} inputMode="url" maxLength={500}
+    placeholder={f.type === "youtube" ? "https://www.youtube.com/watch?v=..." : f.type === "link" ? "https://bauval.org/22/f6d0916824c055dab111bba2b643f197" : "https://example.com/video.mp4"} className={input} />
+</Field>
             )}
           </div>
 

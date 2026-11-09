@@ -149,7 +149,7 @@ export default function WatchAds() {
                       <button onClick={() => start(a)} disabled={locked || !!starting}
                         className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none">
                         {starting === a.id ? <Loader2 className="h-4 w-4 animate-spin" /> : a.watched ? <Check className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        {a.watched ? "Come back tomorrow" : "Watch & Earn"}
+                        {a.watched ? "Come back tomorrow" : a.type === "link" ? "Visit & Earn" : "Watch & Earn"}
                       </button>
                     </div>
                   </div>

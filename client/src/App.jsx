@@ -7,7 +7,7 @@ import { NAV } from "./config/navigation";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
-import VerifyEmail from "./pages/VerifyEmail";
+
 import Dashboard from "./pages/Dashboard";
 import ComingSoon from "./pages/ComingSoon";
 import Referrals from "./pages/Referrals";
@@ -44,7 +44,7 @@ export default function App() {
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email" element={<Navigate to="/dashboard" replace />} />
 
           <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
   <Route path="/dashboard" element={<Dashboard />} />

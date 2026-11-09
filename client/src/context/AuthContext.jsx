@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   onAuthStateChanged, signOut, signInWithPopup,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  updateProfile, sendEmailVerification, sendPasswordResetEmail,
+  updateProfile, sendPasswordResetEmail, 
 } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
 import api from "../services/api";
@@ -14,22 +14,29 @@ export const useAuth = () => useContext(AuthContext);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const registering = useRef(false);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
+      if (registering.current) return;
       setUser(u);
       setLoading(false);
     });
   }, []);
 
-  const register = async ({ fullName, email, password, phone, country, referralCode }) => {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  await updateProfile(cred.user, { displayName: fullName });
-  await sendEmailVerification(cred.user);
-  await api.post("/auth/sync", { fullName, phone, country, referralCode: referralCode || "" });
-  clearStoredRef();
-  return cred.user;
-};
+    const register = async ({ fullName, email, password, phone, country, referralCode }) => {
+    registering.current = true;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: fullName });
+      await api.post("/auth/sync", { fullName, phone, country, referralCode: referralCode || "" });
+      clearStoredRef();
+      setUser(auth.currentUser);
+      return cred.user;
+    } finally {
+      registering.current = false;
+    }
+  };
 
   const login = async (email, password) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -44,7 +51,6 @@ export function AuthProvider({ children }) {
   return cred.user;
 };
 
-  const resendVerification = () => sendEmailVerification(auth.currentUser);
   const resetPassword = (email) => sendPasswordResetEmail(auth, email);
   const logout = () => signOut(auth);
 
@@ -56,7 +62,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider
       value={{ user, loading, register, login, loginWithGoogle, logout,
-               resendVerification, resetPassword, refreshUser }}
+               resetPassword, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

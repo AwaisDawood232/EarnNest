@@ -50,7 +50,7 @@ export default function Login() {
   });
 
   const go = (user) => {
-    navigate(user.emailVerified ? "/dashboard" : "/verify-email");
+        navigate("/dashboard");
   };
 
   const onSubmit = async ({ email, password }) => {
